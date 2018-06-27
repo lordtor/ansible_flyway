@@ -1,0 +1,21 @@
+---
+- block:
+  - name: Подключаем поиск рабочих скриптов
+    include_tasks:  find_script.yml
+  - name: Подключаем рендер файла свойств
+    include_tasks:  render.yml
+  - name: Подключаем настройку скрипта flyway
+    include_tasks:  set_grant.yml
+  - name: Подключаем настройку vault_placeholders
+    include_tasks: vault_placeholders.yml
+    when: vault_flyway_placeholders is defined
+  - name: Подключаем блок INFO
+    include_tasks: info.yml
+    when: flyway_info
+  - name: Подключаем блок
+    include_tasks: repair.yml
+    when: flyway_repair
+  - name: Подключаем блок
+    include_tasks: migrate.yml
+    when: flyway_migrate 
+  when: flyway_info or flyway_repair or flyway_migrate

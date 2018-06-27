@@ -1,0 +1,19 @@
+---
+- name: Запуск flyway.sh с параметром Repair
+  shell: ./flyway.sh -configFile=Flyway.properties -password=$FLYPASS $VALPLACE repair
+  environment:
+    FLYPASS: "{{ vault_flyway_password | default(flyway_password) }}" 
+    VALPLACE: "{{ vault_placeholders }}"
+  args:
+    chdir: "{{ flyway }}"
+  register: repair
+- name: Получаем результаты выполнения (stdout)
+  debug:
+    msg: "{{ repair.stdout_lines }}"
+- name: Формируем лог файл Repair
+  copy:
+    dest: "{{ playbook_dir }}/files/{{ ansible_date_time.date }}-{{ ansible_date_time.time | regex_replace(':','.')}}_{{ ansible_host }}_repair.log"
+    content: "{{ repair.stdout }}"
+- name: Обработка логов
+  include_tasks: log_to_zip.yml
+

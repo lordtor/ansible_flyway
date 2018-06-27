@@ -1,0 +1,7 @@
+---
+- name: Заполнение массива  vault_placeholders
+  set_fact:
+    vault_placeholders: "{{ vault_placeholders }}-placeholders.{{ item.name}}={{ item.value }} "
+  with_items:
+    - "{{ vault_flyway_placeholders }}"
+  no_log: True

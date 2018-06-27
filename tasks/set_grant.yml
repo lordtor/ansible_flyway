@@ -1,0 +1,6 @@
+---
+- name: Выдача прав на запуск скрипту flyway.sh
+  file:
+   path: "{{ flyway }}/flyway.sh"
+   mode: 0755
+

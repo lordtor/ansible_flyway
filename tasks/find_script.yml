@@ -1,0 +1,55 @@
+---
+- name: Поиск скрипта flyway.sh
+  find:
+    paths:            "{{ work_dir }}"
+    patterns:         'flyway.sh'
+    recurse:          "yes"
+    file_type:        "file"
+  register: find_result
+
+- name: Получаем полный путь скрипта flyway.sh
+  set_fact:
+    flyway: "{{ item.path.split('/')[0:-1]|join('/') }}"
+  with_items: "{{ find_result.files }}"
+
+- name: Проверяем еденичный ли путь для скрипта
+  fail: msg="NOT FOUND FLYWAY SCRIPT OR FOUND MORE AT ONE"
+  when: find_result.matched == 0 or find_result.matched > 1
+
+- stat:
+    path:  "{{ flyway }}/drivers"
+  register: drivers
+- name: Будет задействован драйвер
+  debug:
+    msg: "{{flyway}}/drivers"
+  when: drivers.stat.exists != false
+
+- block:
+  - name: "WARNING: Не найдена директория {{flyway}}/drivers"
+    debug:
+      msg:
+        - "Директрия {{flyway}}/drivers: НЕ существует"
+        - "Запущен поиск ojdbc драйвера для flyway"
+  - name: Поиск ojdbc драйверов в дистрибутиве
+    find:
+      paths:            "{{ flyway }}"
+      patterns:         'ojdbc*'
+      recurse:          "yes"
+      file_type:        "file"
+    register: ojdbc_result
+  - name: Драйвер найден
+    set_fact:
+      ojdbc: "{{ item.path }}"
+    with_items: "{{ ojdbc_result.files }}"
+  - name: Будет задействован драйвер
+    debug:
+      msg: "{{ ojdbc }}"
+  - name: Создаем директорию
+    file:
+      path: "{{flyway}}/drivers"
+      state: directory
+  - name: Копируем драйвер
+    copy:
+      src: "{{ojdbc}}"
+      dest: "{{flyway}}/drivers/ojdbc.jar"
+  when: drivers.stat.exists == false

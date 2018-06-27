@@ -1,0 +1,45 @@
+---
+- name: Определяем флаг как run
+  set_fact:
+    flag: 'run'
+- name: Запуск flyway.sh с параметром Migrate
+  shell: ./flyway.sh -configFile=Flyway.properties -password=$FLYPASS $VALPLACE migrate
+  environment:
+    FLYPASS: "{{ vault_flyway_password | default(flyway_password) }}" 
+    VALPLACE: "{{ vault_placeholders }}"
+  args:
+    chdir: "{{ flyway }}"
+  register: migrate
+  ignore_errors: True
+- name: Получаем результаты выполнения (stdout)
+  debug:
+    msg: "{{ migrate.stdout_lines }}"
+- name: Получаем результаты выполнения (stderr)
+  debug:
+    msg: "{{ migrate.stderr_lines }}"
+- name: Формируем лог файл
+  copy:
+    dest: "{{ playbook_dir }}/files/{{ ansible_date_time.date }}-{{ ansible_date_time.time | regex_replace(':','.')}}_{{ ansible_host }}_migrate.log"
+    content: "{{ migrate.stdout }} {{ migrate.stderr}}"
+- name: 
+  lineinfile:
+    path: "{{ playbook_dir }}/files/{{ ansible_date_time.date }}-{{ ansible_date_time.time | regex_replace(':','.')}}_{{ ansible_host }}_migrate.log"
+    state: absent
+    regexp: "is up to date. No migration necessary."
+    line: 'is up to date. No migration necessary.'
+  check_mode: yes
+  register: fix_err
+
+- name: Анализ ошибок
+  set_fact:
+   flag: 'failed'
+  when: 
+    - "migrate.stderr !=''"
+    - "fix_err.changed != true"
+- name: Обработка логов
+  include_tasks: log_to_zip.yml
+- name: Проверка флага работы
+  fail: msg="The execution has failed because of errors."
+  when: flag == 'failed'
+
+

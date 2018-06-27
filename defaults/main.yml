@@ -1,0 +1,6 @@
+---
+flyway_info: True
+flyway_repair: True
+flyway_migrate: True
+vault_placeholders: ''
+

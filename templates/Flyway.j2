@@ -1,0 +1,19 @@
+#
+# This parameters given as incoming :
+# flyway.password=
+# flyway.placeholders.dblink_ascc_password=
+# For run this propertis file use:
+# ./flyway.sh -configFile=Flyway.properties -password=$FLYPASS $VALPLACE migrate
+# where:
+#  $FLYPASS == value_for_flyway.password
+#  $VALPLACE ==  -placeholders.dblink_ascc_password=value_for_flyway.placeholders.dblink_ascc_password
+# Example:
+# ./flyway.sh -configFile=Flyway.properties -password=SUPERPASSWORD -placeholders.dblink_ascc_password=DBLINKPASSWORD
+#######################################################################################################
+flyway.driver=oracle.jdbc.driver.OracleDriver
+flyway.url=jdbc:oracle:thin:user/password@{{ flyway_db_host }}:{{ flyway_port }}:{{ flyway_db_name }}
+{% for item in flyway_main %}flyway.{{item}}={{flyway_main[item]}}
+{% endfor %}
+{% for item in flyway_placeholders %}flyway.placeholders.{{item}}={{flyway_placeholders[item]}}
+{% endfor %}
+

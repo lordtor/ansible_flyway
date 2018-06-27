@@ -1,0 +1,18 @@
+---
+- name: Запуск flyway.sh с параметром Info
+  shell: ./flyway.sh -configFile=Flyway.properties -password=$FLYPASS  $VALPLACE info
+  environment:
+    FLYPASS: "{{ vault_flyway_password | default(flyway_password) }}"
+    VALPLACE: "{{ vault_placeholders }}"
+  args:
+    chdir: "{{ flyway }}"
+  register: info
+- name: Получаем результаты выполнения (stdout)
+  debug:
+   msg: "{{ info.stdout_lines }}"
+- name: Формируем лог файл Info
+  copy:
+    dest: "{{ playbook_dir }}/files/{{ ansible_date_time.date }}-{{ ansible_date_time.time | regex_replace(':','.')}}_{{ ansible_host }}_info.log"
+    content: "{{ info.stdout }}"
+- name: Обработка логов
+  include_tasks: log_to_zip.yml

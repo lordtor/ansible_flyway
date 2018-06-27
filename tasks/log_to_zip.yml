@@ -1,0 +1,7 @@
+---
+- name: Добавляем лог в общий архив
+  archive:
+    path:
+      - "{{work_dir}}/files/*.log"
+    format: zip
+    dest: "{{work_dir}}/logs.zip"

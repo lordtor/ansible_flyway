@@ -1,0 +1,9 @@
+---
+- name: Рендер файла свойств (Flyway.properties)
+  template:
+   src: templates/Flyway.j2
+   dest: "{{ flyway }}/Flyway.properties"
+- name: Копируем файл properties
+  copy:
+    src: "{{ flyway }}/Flyway.properties"
+    dest: "{{ playbook_dir }}/files/{{ ansible_date_time.date }}-{{ ansible_date_time.time | regex_replace(':','.')}}_{{ ansible_host }}_Flyway_properties.log"
